@@ -7,4 +7,13 @@
 ## -t 保持mtime属性。强烈建议任何时候都加上"-t"，否则目标文件mtime会设置为系统时间，导致下次更新
 ## --exclude 指定排除规则来排除不需要传输的文件。
 ## –daemon 以守护进行同步
-rsync -a -t -P -l --exclude=.* /home/chao/ /media/chao/share/linux-chao-back
+
+if [ ! -d "/media/chao/share/linux-chao-back/" ];then
+	echo "文件夹不存在，查看是否已经挂载"
+else
+	echo "开始同步文件夹内容"
+	rsync -a -t -P -l --exclude=.* /home/chao/ /media/chao/share/linux-chao-back
+	echo "文件夹内容全部同步完成"
+fi
+
+
