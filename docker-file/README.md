@@ -1,0 +1,1 @@
+# 构建docker镜像三种方式，本文主要使用dockerfile来创建文件。
