@@ -79,12 +79,12 @@ include filename ...        # 不允许 include 失败
 > 伪目标就是 Makefile 里面颇为常见的 .PHONY 标识，比如：".PHONY: clean"，表示这个规则名并不代表一个真实存在的、需要生成的文件名，而只是一条纯粹的规则。实例：[Makefile文件](../go-project/Makefile)
 
 * 真目标的特点是：如果目标存在，才会被执行；不存在报错：
-```Makefile
+```bash
 xiaoyueyadeMacBook-Pro:go-project xiaoyueya$ make testing
 make: *** No rule to make target `testing'.  Stop.
 ```
 * 伪目标的特点是：无视目标是否存在，必然执行.
-```Makefile
+```bash
 xiaoyueyadeMacBook-Pro:go-project xiaoyueya$ make clean
 make: Nothing to be done for `clean'.
 ```
