@@ -39,6 +39,10 @@ luac.out
 *.x86_64
 *.hex
 
+# Test binary, build with `go test -c`
+*.test
+
+
 .idea/
 .vscode/
 
