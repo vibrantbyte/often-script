@@ -11,10 +11,11 @@ lua作为一种脚本语言，除了开发简洁，性能优越之外，还应�
 * [MobDebug 0.70](https://github.com/vibrantbyte/MobDebug)
 
 > 项目目录结构
+
 ![nav](./images/nav.png)
 
 
-> 源码位置[often-script](https://github.com/vibrantbyte/often-script/lua/project)
+> 源码位置[often-script](https://github.com/vibrantbyte/often-script/tree/master/lua/project)
 
 ## 一、远程调试
 ### 1、打开idea中调试配置，使用Lua Remote(Mobdebug),如下图：
