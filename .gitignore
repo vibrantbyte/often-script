@@ -42,8 +42,13 @@ luac.out
 # Test binary, build with `go test -c`
 *.test
 
-
-.idea/
 .vscode/
-
+.idea/
+client_body_temp/
+fastcgi_temp/
+proxy_temp/
+scgi_temp/
+uwsgi_temp/
+on
+logs/
 
