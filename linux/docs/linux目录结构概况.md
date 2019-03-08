@@ -1,6 +1,6 @@
 ## linux 目录结构概况
 
-### 一、linux “/”为linux根目录，该目录下主要文件夹为：
+### 一、linux “/”为linux根目录，该目录下主要文件夹为：
 ```bash
 [root@localhost custom-user]# cd /
 [root@localhost /]# ls
