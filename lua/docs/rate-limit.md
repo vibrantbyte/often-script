@@ -391,7 +391,7 @@ resty.limit.traffic 模块说明 This library is already usable though still hig
 #### 3. kong 插件
 * 参考地址：[Rate Limiting Advanced (企业版)](https://docs.konghq.com/hub/kong-inc/rate-limiting-advanced/)
 * 参考地址：[rate-limiting 请求限速](https://docs.konghq.com/hub/kong-inc/rate-limiting/)
-* 参考地址：[request-size-limiting](https://docs.konghq.com/hub/kong-inc/request-size-limiting/)
+* 参考地址：[request-size-limiting （官方建议开启此插件，防止DOS(拒绝服务)攻击）](https://docs.konghq.com/hub/kong-inc/request-size-limiting/)
 * 参考地址：[response-ratelimiting 响应限速](https://docs.konghq.com/hub/kong-inc/response-ratelimiting/)
 * 参考地址：[kong-response-size-limiting 响应大小限制](https://docs.konghq.com/hub/optum/kong-response-size-limiting/)
 ##### 3.1 rate-limiting
