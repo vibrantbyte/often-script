@@ -390,10 +390,11 @@ resty.limit.traffic 模块说明 This library is already usable though still hig
 
 #### 3. kong 插件
 * 参考地址：[Rate Limiting Advanced (企业版)](https://docs.konghq.com/hub/kong-inc/rate-limiting-advanced/)
+* 参考地址：[request-termination](https://docs.konghq.com/hub/kong-inc/request-termination/)
 * 参考地址：[rate-limiting 请求限速](https://docs.konghq.com/hub/kong-inc/rate-limiting/)
 * 参考地址：[request-size-limiting （官方建议开启此插件，防止DOS(拒绝服务)攻击）](https://docs.konghq.com/hub/kong-inc/request-size-limiting/)
 * 参考地址：[response-ratelimiting 响应限速](https://docs.konghq.com/hub/kong-inc/response-ratelimiting/)
-* 参考地址：[kong-response-size-limiting 响应大小限制](https://docs.konghq.com/hub/optum/kong-response-size-limiting/)
+* 参考地址：[kong-response-size-limiting (非官方提供)](https://docs.konghq.com/hub/optum/kong-response-size-limiting/)
 ##### 3.1 rate-limiting
 ~~~
 速率限制开发人员在给定的几秒、几分钟、几小时、几天、几个月或几年时间内可以发出多少HTTP请求。如果底层服务/路由(或废弃的API实体)没有身份验证层，那么将使用客户机IP地址，否则，如果配置了身份验证插件，将使用使用者。
@@ -463,6 +464,55 @@ $ curl -X POST http://kong:8001/apis/{api}/plugins \
     --data "config.limits.{limit_name}.minute=10"
 ```
 
+##### 3.3 request-size-limiting 
+~~~
+阻塞体大于特定大小(以兆为单位)的传入请求。
+~~~
+1. 在一个Service上启用该插件
+```bash
+$ curl -X POST http://kong:8001/services/{service}/plugins \
+    --data "name=request-size-limiting"  \
+    --data "config.allowed_payload_size=128"
+```
+2. 在一个router上启用该插件
+```bash
+$ curl -X POST http://kong:8001/routes/{route_id}/plugins \
+    --data "name=request-size-limiting"  \
+    --data "config.allowed_payload_size=128"
+```
+3. 在一个consumer上启动该插件
+```bash
+$ curl -X POST http://kong:8001/plugins \
+    --data "name=request-size-limiting" \
+    --data "consumer_id={consumer_id}"  \
+    --data "config.allowed_payload_size=128"
+```
+##### 3.4 request-termination
+~~~
+此插件使用指定的状态代码和消息终止传入的请求。这允许(暂时)停止服务或路由上的通信，甚至阻塞消费者。
+~~~
+1. 在一个Service上启用该插件
+```bash
+$ curl -X POST http://kong:8001/services/{service}/plugins \
+    --data "name=request-termination"  \
+    --data "config.status_code=403" \
+    --data "config.message=So long and thanks for all the fish!"
+```
+2. 在一个router上启用该插件
+```bash
+$ curl -X POST http://kong:8001/routes/{route_id}/plugins \
+    --data "name=request-termination"  \
+    --data "config.status_code=403" \
+    --data "config.message=So long and thanks for all the fish!"
+```
+3. 在一个consumer上启动该插件
+```bash
+$ curl -X POST http://kong:8001/plugins \
+    --data "name=request-termination" \
+    --data "consumer_id={consumer_id}"  \
+    --data "config.status_code=403" \
+    --data "config.message=So long and thanks for all the fish!"
+```
 
 #### 4. 基于redis - INCR key
 * 参考地址：[pattern-rate-limiter（翻墙）](http://redis.io/commands/INCR#pattern-rate-limiter)
