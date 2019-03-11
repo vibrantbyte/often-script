@@ -389,13 +389,82 @@ resty.limit.traffic 模块说明 This library is already usable though still hig
 意思是说目前这个模块虽然可以使用了，但是还处在高度实验性阶段，所以目前（2019-03-11）放弃使用resty.limit.traffic模块。
 
 #### 3. kong 插件
+* 参考地址：[Rate Limiting Advanced (企业版)](https://docs.konghq.com/hub/kong-inc/rate-limiting-advanced/)
 * 参考地址：[rate-limiting 请求限速](https://docs.konghq.com/hub/kong-inc/rate-limiting/)
+* 参考地址：[request-size-limiting](https://docs.konghq.com/hub/kong-inc/request-size-limiting/)
 * 参考地址：[response-ratelimiting 响应限速](https://docs.konghq.com/hub/kong-inc/response-ratelimiting/)
+* 参考地址：[kong-response-size-limiting 响应大小限制](https://docs.konghq.com/hub/optum/kong-response-size-limiting/)
+##### 3.1 rate-limiting
+~~~
+速率限制开发人员在给定的几秒、几分钟、几小时、几天、几个月或几年时间内可以发出多少HTTP请求。如果底层服务/路由(或废弃的API实体)没有身份验证层，那么将使用客户机IP地址，否则，如果配置了身份验证插件，将使用使用者。
+~~~
+1. 在一个Service上启用该插件
+```bash
+$ curl -X POST http://kong:8001/services/{service}/plugins \
+    --data "name=rate-limiting"  \
+    --data "config.second=5" \
+    --data "config.hour=10000"
+```
+2. 在一个router上启用该插件
+```bash
+$ curl -X POST http://kong:8001/routes/{route_id}/plugins \
+    --data "name=rate-limiting"  \
+    --data "config.second=5" \
+    --data "config.hour=10000"
+```
+3. 在一个consumer上启动该插件
+```bash
+$ curl -X POST http://kong:8001/plugins \
+    --data "name=rate-limiting" \
+    --data "consumer_id={consumer_id}"  \
+    --data "config.second=5" \
+    --data "config.hour=10000"
+```
+---
+> rate-limiting支持三个策略，它们分别拥有自己的优缺点  
+
+| 策略 | 优点 | 缺点 |
+| :-- | :-- | :-- |
+| cluster | 准确，没有额外的组件来支持 | 相对而言，性能影响最大的是，每个请求都强制对底层数据存储执行读和写操作。 |
+| redis | 准确，比集群策略对性能的影响更小 | 额外的redis安装要求，比本地策略更大的性能影响 |
+| local | 最小的性能影响 | 不太准确，除非在Kong前面使用一致哈希负载均衡器，否则在扩展节点数量时它会发散 |
+
+##### 3.2 response-ratelimiting 
+~~~
+此插件允许您根据上游服务返回的自定义响应头限制开发人员可以发出的请求数量。您可以任意设置任意数量的限速对象(或配额)，并指示Kong按任意数量增加或减少它们。每个自定义速率限制对象都可以限制每秒、分钟、小时、天、月或年的入站请求。
+~~~
+1. 在一个Service上启用该插件
+```bash
+$ curl -X POST http://kong:8001/services/{service}/plugins \
+    --data "name=response-ratelimiting"  \
+    --data "config.limits.{limit_name}=" \
+    --data "config.limits.{limit_name}.minute=10"
+```
+2. 在一个router上启用该插件
+```bash
+$ curl -X POST http://kong:8001/routes/{route_id}/plugins \
+    --data "name=response-ratelimiting"  \
+    --data "config.limits.{limit_name}=" \
+    --data "config.limits.{limit_name}.minute=10"
+```
+3. 在一个consumer上启动该插件
+```bash
+$ curl -X POST http://kong:8001/plugins \
+    --data "name=response-ratelimiting" \
+    --data "consumer_id={consumer_id}"  \
+    --data "config.limits.{limit_name}=" \
+    --data "config.limits.{limit_name}.minute=10"
+```
+4. 在api上启用该插件
+```bash
+$ curl -X POST http://kong:8001/apis/{api}/plugins \
+    --data "name=response-ratelimiting"  \
+    --data "config.limits.{limit_name}=" \
+    --data "config.limits.{limit_name}.minute=10"
+```
 
 
-
-
-#### 4. 基于redis - INCR key (类似令牌桶)
+#### 4. 基于redis - INCR key
 * 参考地址：[pattern-rate-limiter（翻墙）](http://redis.io/commands/INCR#pattern-rate-limiter)
 
 ~~~
