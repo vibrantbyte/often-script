@@ -261,5 +261,22 @@ value: integer
 ## 三、令牌桶算法实现具体策略
 ### 1. local 策略
 ### 2. redis 策略
+```lua
+-- url 匹配后
+
+--- key
+local limit = 10;
+local key = "kong:rate_limit:service_name:id";
+local current
+current = redis.call("incr",key)
+if tonumber(current) == 1 then
+    redis.call("expire",key,过期时间)
+end
+
+-- value
+if current != nil && current > limit then
+    -- too many requests per seconds
+end
+```
 ### 3. cluster 策略
 
