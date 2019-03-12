@@ -233,6 +233,7 @@ value: map(url,令牌桶相关信息)
 | method | 请求方式 | 请求方式 |
 | limit | 单位时间请求量 | 单位时间请求量 |
 | timespan | 时间段 | 时间段 |
+
 ---
 
 模式匹配 map结构 service_name为kong的service。 
@@ -259,8 +260,5 @@ value: integer
 ## 三、令牌桶算法实现具体策略
 ### 1. local 策略
 ### 2. redis 策略
-
-
-
 ### 3. cluster 策略
 
