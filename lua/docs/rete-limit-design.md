@@ -260,6 +260,50 @@ value: integer
 
 ## 三、令牌桶算法实现具体策略
 ### 1. local 策略
+
+```lua
+lua_shared_dict my_limit_req_store 100m;
+....
+
+location /hello {
+   access_by_lua_block {
+       local limit_req = require "resty.limit.req"
+
+       local lim, err = limit_req.new("my_limit_req_store", 2, 0)
+       if not lim then
+           ngx.log(ngx.ERR, "failed to instantiate a resty.limit.req object: ", err)
+           return ngx.exit(500)
+       end
+
+       local key = ngx.var.binary_remote_addr
+       local delay, err = lim:incoming(key, true)
+       if not delay then
+           if err == "rejected" then
+               return ngx.exit(503)
+           end
+           ngx.log(ngx.ERR, "failed to limit req: ", err)
+           return ngx.exit(500)
+       end
+       
+       -- 此方法返回，当前请求需要delay秒后才会被处理，和他前面对请求数
+       -- 此处忽略桶中请求所需要的延时处理，让其直接返送到后端服务器，
+       -- 其实这就是允许桶中请求作为突发流量 也就是令牌桶桶的原理所在
+       if delay >= 0.001 then
+       --    ngx.sleep(delay)
+       end
+   }
+
+   proxy_pass http://10.100.157.198:6112;
+   proxy_set_header Host $host;
+   proxy_redirect off;
+   proxy_set_header X-Real-IP $remote_addr;
+   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+   proxy_connect_timeout 60;
+   proxy_read_timeout 600;
+   proxy_send_timeout 600;
+}
+```
+
 ### 2. redis 策略
 ```lua
 -- url 匹配后
