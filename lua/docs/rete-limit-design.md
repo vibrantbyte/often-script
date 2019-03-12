@@ -240,6 +240,7 @@ value: map(url,令牌桶相关信息)
 key: kong:rate_limit_pattern:service_name
 value: map(url,令牌桶相关信息)  
 **>>遍历pattern列表，找到对应的信息<<**
+
 | 字段名 | 含义 | 备注 |
 | :-- | :-- | :-- |
 | id | 自增列 | int值 |
