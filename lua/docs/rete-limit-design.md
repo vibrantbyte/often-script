@@ -214,12 +214,13 @@ function getextension(filename)
 | 字段名 | 含义 | 是否必填 | 重要性 | 备注 |
 | :-- | :-- | :-- | :-- | :-- |
 | id | 自增ID | 是 | 主键 | 数据主键，快速查找配置信息 |
-| service | 项目名称 | 是 | 比较重要 | 数据库中使用service进行规则分组，与kong里面的service一一对应。 |
+| service_id | 服务id | 是 | 比较重要 | 数据库中使用route和service进行规则分组，与kong里面的service一一对应。 |
+| route_id | 路由id | 是 | 比较重要 | 数据库中使用route和service进行规则分组，与kong里面的route一一对应。 |
 | url | 接口地址 | 是 | 重要 | url的pattern表达式或url，通过请求的URL来定位限流位置信息。 |
 | method | 请求方式 | 是 | 重要 | 对url的请求方式进行限制，主要有GET、POST、PUT、DELETE等等。 |
 | limit | 单位时间请求量 | 是 | 重要 | 用于限流，默认不限流，可以关闭接口 -1：不限流， 0：关闭接口，>1 具体限流值 |
 | timespan | 时间段（s） | 是 | 重要 | 时间间隔，以秒为单位。比如：1 = 1s，60 = 1m，3600 = 1h |
-| is_wildcard | 接口是否是模糊接口 | 是 | 比较重要 | 该URL是否是通配地址，0 否 1 是。默认为否。 通配地址实例：\zuul_home/test/{id}，/zuul_home/test/**，/zuul_home/test/?等 |
+| wildcard_type | 通配类型 | 是 | 比较重要 | 该URL是否是通配地址，1 = 最长路径 2 = ant path 3 = 正则。默认为最长路径。 通配地址实例：\zuul_home/test/{id}，/zuul_home/test/**，/zuul_home/test/?等 |
 | remark | 备注 | 否 | 不重要 | 用于描述接口的功能 |
 | update | 更新时间 | 否 | 不重要 | 数据更新时间 |
 ### 2. 缓存结构设计
@@ -227,29 +228,27 @@ function getextension(filename)
 1. 如果是完全匹配去map中获取  
 2. 如果是pattern匹配循环规则组。
 
-全匹配 map 结构, service_name为kong的service。  
-key：kong:rate_limit_kmp:service_name  
+全匹配 map 结构, service_id为kong的service;route_id 为kong的route_id;
+key：kong:rate_limit_kmp:service_id_route_id  
 value: map(url,令牌桶相关信息)
 
 | 字段名 | 含义 | 备注 |
 | :-- | :-- | :-- |
 | id | 自增列 | int值 |
-| service | 服务名称 | 服务名称 |
 | method | 请求方式 | 请求方式 |
 | limit | 单位时间请求量 | 单位时间请求量 |
 | timespan | 时间段 | 时间段 |
 
 ---
 
-模式匹配 map结构 service_name为kong的service。 
-key: kong:rate_limit_pattern:service_name
+模式匹配 map结构 service_id为kong的service;route_id 为kong的route_id;
+key：kong:rate_limit_kmp:service_id_route_id  
 value: map(url,令牌桶相关信息)  
 **>>遍历pattern列表，找到对应的信息<<**
 
 | 字段名 | 含义 | 备注 |
 | :-- | :-- | :-- |
 | id | 自增列 | int值 |
-| service | 服务名称 | 服务名称 |
 | method | 请求方式 | 请求方式 |
 | limit | 单位时间请求量 | 单位时间请求量 |
 | timespan | 时间段 | 时间段 |
@@ -257,10 +256,10 @@ value: map(url,令牌桶相关信息)
 ---
 
 > 令牌桶key 和 limiter  
- service_name为kong的service。
+ service_id为kong的service;route_id 为kong的route_id;
  id 为 数据主键
 
-key: kong:rate_limit:service_name:id  
+key: kong:rate_limit:service_id_route_id:id  
 value: integer
 
 ## 三、令牌桶算法实现具体策略
