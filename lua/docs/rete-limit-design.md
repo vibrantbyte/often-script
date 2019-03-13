@@ -228,9 +228,9 @@ function getextension(filename)
 1. 如果是完全匹配去map中获取  
 2. 如果是pattern匹配循环规则组。
 
-全匹配 map 结构, service_id为kong的service;route_id 为kong的route_id;
+全匹配 map 结构, service_id为kong的service;route_id 为kong的route_id;  
 key：kong:rate_limit_kmp:service_id_route_id  
-value: map(url,令牌桶相关信息)
+value: map(url,令牌桶相关信息)  
 
 | 字段名 | 含义 | 备注 |
 | :-- | :-- | :-- |
@@ -241,9 +241,9 @@ value: map(url,令牌桶相关信息)
 
 ---
 
-模式匹配 map结构 service_id为kong的service;route_id 为kong的route_id;
+模式匹配 map结构 service_id为kong的service;route_id 为kong的route_id;  
 key：kong:rate_limit_kmp:service_id_route_id  
-value: map(url,令牌桶相关信息)  
+value: map(url,令牌桶相关信息)    
 **>>遍历pattern列表，找到对应的信息<<**
 
 | 字段名 | 含义 | 备注 |
@@ -256,7 +256,7 @@ value: map(url,令牌桶相关信息)
 ---
 
 > 令牌桶key 和 limiter  
- service_id为kong的service;route_id 为kong的route_id;
+ service_id为kong的service;route_id 为kong的route_id;  
  id 为 数据主键
 
 key: kong:rate_limit:service_id_route_id:id  
