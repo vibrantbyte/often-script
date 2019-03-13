@@ -7,6 +7,11 @@
 2. 规则缓存及持久化支持，具体为：直接内存、redis缓存、postgresql；
 3. 令牌桶限流算法实现，策略支持：local、cluster、redis；
 
+* 处理流程：
+![rate-limit-design01](./images/rate-limit-design01.png)
+* 数据更新流程:  
+![rate-limit-design02](./images/rate-limit-design02.png)
+
 描述：当请求打到nginx上的时候，lua通过url匹配库获取缓存中对应的限流信息，根据限流信息向token bucket中放置token，放置token的速度根据限流配置信息中的速度来投放，然后去领取token，如果token bucket中还有可用的token，那么该接口放行，如果没有可用的token了，接口关闭；
 
 ## 一、通配符URL支持
@@ -265,9 +270,7 @@ value: integer
 lua_shared_dict my_limit_req_store 100m;
 ....
 
-location /hello {
-   access_by_lua_block {
-       local limit_req = require "resty.limit.req"
+ local limit_req = require "resty.limit.req"
 
        local lim, err = limit_req.new("my_limit_req_store", 2, 0)
        if not lim then
@@ -291,17 +294,6 @@ location /hello {
        if delay >= 0.001 then
        --    ngx.sleep(delay)
        end
-   }
-
-   proxy_pass http://10.100.157.198:6112;
-   proxy_set_header Host $host;
-   proxy_redirect off;
-   proxy_set_header X-Real-IP $remote_addr;
-   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-   proxy_connect_timeout 60;
-   proxy_read_timeout 600;
-   proxy_send_timeout 600;
-}
 ```
 
 ### 2. redis 策略
@@ -323,4 +315,9 @@ if current != nil && current > limit then
 end
 ```
 ### 3. cluster 策略
+
+```lua
+--- 具体实现参考rate-limiting
+
+```
 
