@@ -10,4 +10,4 @@ all: vibrant
 	@echo "all is execute."
 
 vibrant:
-	go build -buildmode=c-shared -o $(project) ./libvibrant.go
+	go build --buildmode=c-shared -o $(project) ./libvibrant.go
