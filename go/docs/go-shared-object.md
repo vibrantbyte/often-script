@@ -1,4 +1,4 @@
-# golang 生成 shared object 供脚本语言使用
+# golang 生成 shared object 供其他语言使用
 
 ## LINUX so 文件基本概念和命名规则
 ![版本示意图](./images/go-shared-object.png)
@@ -10,7 +10,7 @@
 * release 增加，修改一些bug, 函数接口不变
 
 # c-go
-## 模板-供c或java等其他语言使用
+## 模板-供c、java等编译型语言或脚本语言使用
 
 ```go
 package main
@@ -37,6 +37,37 @@ func main(){
 ## 编译
 ```bash
 go build -buildmode=c-shared -o libhello.so .\libhello.go
+```
+
+## 使用lua脚本语言调用
+> 使用到的库： [lua2go](https://github.com/vibrantbyte/lua2go/blob/master/lua/lua2go.lua)  
+
+### luajit 环境变量配置
+```bash
+  export LUA_PATH="~/?.lua;;"
+  export LUAJIT_LIB=/usr/local/openresty/luajit/lib
+  export LUAJIT_INC=/usr/local/openresty/luajit/include/luajit-2.1
+  export LUAJIT_HOME=/usr/local/openresty/luajit
+  
+  PATH=$PATH:$LUAJIT_HOME/bin
+  export PATH
+```
+
+### 调用demo
+```lua
+ local lua2go = require('lua2go')
+ local example = lua2go.Load('./libvibrant.so')
+ 
+ lua2go.Externs[[
+   extern GoInt32 Sum(GoInt32 a,GoInt32 b);
+ ]]
+ 
+ print(example.Sum(1,100))
+```
+
+### 调用测试
+```bash
+luajit test_go.lua
 ```
 
 # plug 模式

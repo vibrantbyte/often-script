@@ -16,6 +16,7 @@ before:
 wget: goal
 	@echo "get from internet"
 	@wget https://raw.githubusercontent.com/vibrantbyte/often-script/master/go-file/sharedobject/libvibrant.go
+	@wget https://raw.githubusercontent.com/vibrantbyte/lua2go/master/lua/lua2go.lua
 
 build: goal
 	@echo "execute script"
