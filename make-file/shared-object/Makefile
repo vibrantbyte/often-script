@@ -19,7 +19,7 @@ wget: goal
 
 build: goal
 	@echo "execute script"
-	go build -buildmode=c-shared -o lib${project}.so ./libvibrant.go
+	go build -ldflags "-s -w" -buildmode=c-shared -o lib${project}.so ./libvibrant.go
 	# 增加执行权限
 	chmod g+x,u+x,o+x libvibrant.so
 

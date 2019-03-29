@@ -10,4 +10,4 @@ all: lib_plugin
 	@echo "all is execute."
 
 lib_plugin:
-    go build --buildmode=plugin -o $(project) ./rrc_user_tree_plugin.go
+    go build  -ldflags "-s -w" --buildmode=plugin -o $(project) ./rrc_user_tree_plugin.go
