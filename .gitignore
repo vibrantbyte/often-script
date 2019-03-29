@@ -42,6 +42,11 @@ luac.out
 # Test binary, build with `go test -c`
 *.test
 
+# shared object
+*.so
+*.h
+
+
 .vscode/
 .idea/
 client_body_temp/
