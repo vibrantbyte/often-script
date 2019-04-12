@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -45,66 +46,126 @@ type RoundRobinPeer struct {
 
 //RoundRobinPeerData
 type RoundRobinPeerData struct {
-	// 有序轮询集合
-	Peers []*RoundRobinPeer
-	// 有序集合大小
-	Len uint
-	// 选中的peer
-	Current *RoundRobinPeer
+	// 读写锁保证data内部对象操作的线程安全
+	sync.RWMutex
+	// 有序轮询集合 （线程共享）
+	peers []*RoundRobinPeer
+	// 有序集合大小 	(线程共享)
+	len uint
 }
 
-func main()  {
+//getLen （safe）
+func (data *RoundRobinPeerData) GetLen() uint{
+	data.RLock()
+	defer data.RUnlock()
+	return data.len
+}
 
-	fmt.Println("初始化数据")
+//Append (safe)
+func (data *RoundRobinPeerData) Append(peer *RoundRobinPeer){
+	data.Lock()
+	defer data.Unlock()
+	if data.peers == nil {
+		data.peers = make([]*RoundRobinPeer,0)
+	}
+	data.peers = append(data.peers,peer)
+	data.len += 1
+}
+
+//GetIndexPeer (safe)
+func (data *RoundRobinPeerData) GetIndex(index uint) *RoundRobinPeer {
+	data.RLock()
+	defer data.RUnlock()
+	return data.peers[index]
+}
+
+//UpdateIndex (safe)
+func (data *RoundRobinPeerData) UpdateIndex(index uint,peer *RoundRobinPeer){
+	data.Lock()
+	defer data.Unlock()
+	// 修改指针地址
+	data.peers[index] = peer
+}
+
+var firstOpenApplication = true
+
+func main()  {
+	/**
+	1、首次启动检测redis中数据是否存在，使用的是redis的hash数据结构来存储。
+	2、如果不为空的话，需要和内存副本中获取的数据进行排序比较，然后重新初始化。
+	3、开始进行权益公平算法调度。
+	5、每次调度结果持久化到redis中，防止服务器宕机，找不到上一次的顺序。（如果不需要多实例下的强一致性，可以将缓存落盘到磁盘）
+	6、实时动态的操作更新当前运行的算法。
+	*/
+
+	if firstOpenApplication {
+		//1、首次！！！读取redis缓存中的上一次派单记录
+		firstOpenApplication = false
+	}
+
 	data := new(RoundRobinPeerData)
-	data.Peers = make([]*RoundRobinPeer,0)
-	data.Len = 0
 
 	peer1 := new(RoundRobinPeer)
 	peer1.Name = "a"
 	peer1.Serial = 1
 	peer1.Weight = 5
+	peer1.EffectiveWeight = 5
 	peer1.Down = false
-	data.Peers = append(data.Peers,peer1)
-	data.Len = 1
+	data.Append(peer1)
 
 
 	peer2 := new(RoundRobinPeer)
 	peer2.Name = "b"
 	peer2.Serial = 2
 	peer2.Weight = 3
+	peer2.EffectiveWeight = 3
 	peer2.Down = false
-	data.Peers = append(data.Peers,peer2)
-	data.Len = 2
+	data.Append(peer2)
 
 
 	peer3 := new(RoundRobinPeer)
 	peer3.Name = "c"
 	peer3.Serial = 3
 	peer3.Weight = 1
+	peer3.EffectiveWeight = 1
 	peer3.Down = false
-	data.Peers = append(data.Peers,peer3)
-	data.Len = 3
+	data.Append(peer3)
 
-	for i := 0; i< 9 ;i++  {
+	peer4 := new(RoundRobinPeer)
+	peer4.Name = "d"
+	peer4.Serial = 4
+	peer4.Weight = 0
+	peer4.EffectiveWeight = 0
+	peer4.Down = false
+	data.Append(peer4)
+
+	//2、比较后，生成对应的缓存信息 - 其他线程更新的时候操作的是本地缓存。
+
+	//3、开始进行平衡权益算法调度
+	for i := 0; i< 6 ;i++  {
 		peer := GetPeer(data)
 		if peer != nil {
-			println(peer.Name)
+			fmt.Println(peer.Name)
+		}
+	}
+
+	//4、将执行结果持久化到redis或其他存储介质
+	var i uint
+	for i=0;i<data.GetLen() ;i++  {
+		peer := data.GetIndex(i)
+		if !peer.Down {
+			fmt.Printf("partnerId:%d,currentWeight:%d \n",peer.Serial,peer.CurrentWeight)
 		}
 	}
 
 
 
-
 }
 
-
-
-
+//GetPeer
 func GetPeer(data *RoundRobinPeerData) *RoundRobinPeer{
-
 	var best *RoundRobinPeer
-	//当前时间纳秒
+	//当前时间毫秒
 	now := GetMillisecond()
 	//权重总值
 	var total int32 = 0
@@ -113,21 +174,21 @@ func GetPeer(data *RoundRobinPeerData) *RoundRobinPeer{
 
 
 	//遍历peer列表
-	for i = 0 ;i < data.Len ;i++  {
+	for i = 0 ;i < data.GetLen() ;i++  {
 
 		// 获取当前peer
-		peer := data.Peers[i]
+		peer := data.GetIndex(i)
 
-		// 检查当前后端服务器的 down 标志位，若为 true 表示不参与策略选择，则 continue 检查下一个后端服务器
+		//检查当前后端服务器的 down 标志位，若为 true 表示不参与策略选择，则 continue 检查下一个后端服务器
 		if peer.Down {
 			continue
 		}
 
 		// 当前后端服务器的 down 标志位为 false,接着检查当前后端服务器连接失败的次数是否已经达到 max_fails；
 		// 且睡眠的时间还没到 fail_timeout，则当前后端服务器不被选择，continue 检查下一个后端服务器；
-		if peer.MaxFails > 0 && peer.Fails >= peer.MaxFails && now - peer.Checked <= peer.FailTimeout {
-			continue
-		}
+		//if peer.MaxFails > 0 && peer.Fails >= peer.MaxFails && now - peer.Checked <= peer.FailTimeout {
+		//	continue
+		//}
 
 		// 若当前后端服务器可能被选中，则计算其权重
 
@@ -154,7 +215,6 @@ func GetPeer(data *RoundRobinPeerData) *RoundRobinPeer{
 		return nil
 	}
 
-	data.Current = best
 	best.CurrentWeight -= total
 
 	if (now - best.Checked) > best.FailTimeout {
@@ -163,6 +223,7 @@ func GetPeer(data *RoundRobinPeerData) *RoundRobinPeer{
 
 	return best
 }
+
 
 // 获取当前毫秒数
 func GetMillisecond() int64 {
