@@ -87,6 +87,15 @@ func (data *RoundRobinPeerData) UpdateIndex(index uint,peer *RoundRobinPeer){
 	data.peers[index] = peer
 }
 
+
+
+
+
+
+
+
+
+
 var firstOpenApplication = true
 
 func main()  {
@@ -147,6 +156,8 @@ func main()  {
 		if peer != nil {
 			fmt.Println(peer.Name)
 		}
+		//3.1 递归
+
 	}
 
 	//4、将执行结果持久化到redis或其他存储介质
