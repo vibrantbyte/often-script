@@ -8,12 +8,11 @@ package main
 
 //Node
 type Node struct {
-	next *Node
-	prev *Node
-}
+	Name string
 
-//NewNode
-func NewNode(next,prev *Node) *Node{
-	node := new(Node)
-	return node
+
+	//链表
+	Last *Node
+	Next *Node
+	Previous *Node
 }
