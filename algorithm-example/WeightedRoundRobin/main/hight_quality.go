@@ -6,8 +6,6 @@
 */
 package main
 
-import "fmt"
-
 /**
 根据现有的结构组合成需要递归的结构，封装成处理策略
  */
@@ -21,7 +19,7 @@ type Strategy interface {
 	Size() uint
 
 	//Set
-	Set(first,last Strategy)
+	Set(first Strategy)
 }
 
 type DefaultStrategy struct {
@@ -39,7 +37,7 @@ func NewDefaultStrategy() Strategy {
 	def := new(DefaultStrategy)
 	def.Len += 1
 	def.IsHead = true
-	def.Set(nil,nil)
+	def.Set(nil)
 	strategy = def
 	return strategy
 }
@@ -50,28 +48,23 @@ func (def *DefaultStrategy) Next() Strategy{
 
 func (def *DefaultStrategy) Add(strategy Strategy){
 	strategy.Add(def.next)
-	strategy.Set(def,nil)
+	strategy.Set(def)
 	def.next = strategy
 	def.Len += 1
 }
 
 func (def *DefaultStrategy) Size() uint {
-	return def.Len
+	return def.Len - 1
 }
 
-func (def *DefaultStrategy) Set(first,last Strategy)  {
+func (def *DefaultStrategy) Set(first Strategy)  {
 
 }
 
 
 type RightsStrategy struct {
-
-	//策略长度
-	Len uint
-
 	//策略
 	first Strategy
-	last Strategy
 	next Strategy
 }
 
@@ -87,12 +80,12 @@ func (s *RightsStrategy) Add(strategy Strategy){
 
 //Size
 func (s *RightsStrategy) Size() uint{
-	return 0
+	return s.first.Size()
 }
 
-func (s *RightsStrategy) Set(first,last Strategy)  {
+//Set
+func (s *RightsStrategy) Set(first Strategy)  {
 	s.first = first
-	s.last = last
 }
 
 
@@ -115,13 +108,16 @@ func main()  {
 	inspector1 := new(RightsStrategy)
 	list.Add(inspector1)
 
+	inspector2 := new(RightsStrategy)
+	list.Add(inspector2)
+
 	for {
-		if item := list.Next();item != nil{
-			if rights,ok := item.(RightsStrategy);ok{
-				fmt.Println(rights.Len)
+		if node := list.Next();node != nil{
+			if item,ok := node.(*RightsStrategy);ok{
+				println(item.Size())
 			}
 
-			list = item
+			list = node
 		}else{
 			break
 		}
