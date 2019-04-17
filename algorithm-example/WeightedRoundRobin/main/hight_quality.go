@@ -263,6 +263,7 @@ func main()  {
 
 }
 
+
 //可忽视的执行
 func (r *RightsStrategy) NeglectExecute(f func()){
 	f()
