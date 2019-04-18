@@ -10,22 +10,6 @@ import (
 	"fmt"
 )
 
-//树大小
-var TreeSize int32 = 1024
-
-var Tree *GTree
-
-//地图用户树
-type GTree struct {
-	//节点存储集合
-	GNodes []*GNode
-	//根的位置下标和结点数
-	R,N int32
-}
-
-
-// --- begin ---
-
 //GNode
 type GNode struct {
 	//数据域
@@ -45,13 +29,12 @@ type GChild struct {
 	Next *GChild
 }
 
-
-//GetParent
-func (node *GNode) GetParent() *GNode {
-	if node.Parent >= Tree.N || node.Parent == -1{
+//getParent
+func (node *GNode) getParent(tree *GTree) *GNode {
+	if node.Parent >= tree.N || node.Parent == -1{
 		return nil
 	}
-	return Tree.GNodes[node.Parent]
+	return tree.GNodes[node.Parent]
 }
 
 //GetIndex
@@ -60,13 +43,13 @@ func (node *GNode) GetIndex() int32{
 }
 
 //Add
-func (node *GNode) Add(item *GNode) *GNode{
-	Tree.R ++
-	Tree.GNodes[Tree.R] = item
-	item.Index = Tree.R
+func (node *GNode) insert(tree *GTree,item *GNode) *GNode{
+	tree.R ++
+	tree.GNodes[tree.R] = item
+	item.Index = tree.R
 	item.Parent = node.Index
 	//计算总量
-	Tree.N++
+	tree.N++
 
 	//操作子节点
 	tempNode := node.FirstChild
@@ -94,22 +77,154 @@ func (node *GNode) Add(item *GNode) *GNode{
 	return item
 }
 
-//GetChild
-func (node *GNode) GetChild() []*GNode {
+//getChild
+func (node *GNode) getChild(tree *GTree) []*GNode {
 	nodes := make([]*GNode,0)
 	child := node.FirstChild
 	for {
 		if child == nil {
 			break
 		}
-		nodes = append(nodes,Tree.GNodes[child.Child])
+		nodes = append(nodes,tree.GNodes[child.Child])
 		child = child.Next
 	}
 	return nodes
 }
 
-// --- end ---
+//TreeSize
+var TreeSize int32 = 4096
 
+//地图用户树
+type GTree struct {
+	//节点存储集合
+	GNodes []*GNode
+	//根的位置下标和结点数
+	R,N int32
+	//树大小
+	TreeSize int32
+}
+
+//DefaultCreatTree
+func DefaultCreatTree() *GTree{
+	tree := new(GTree)
+	tree.GNodes = nil
+	tree.R = -1
+	tree.N = 0
+	tree.TreeSize = TreeSize
+	return tree
+}
+
+//CreateTree
+func CreateTree(root *GNode) *GTree{
+	tree := new(GTree)
+	tree.GNodes = make([]*GNode,TreeSize)
+	tree.GNodes[0] = root
+	tree.R = 0
+	tree.N = 1
+	tree.TreeSize = TreeSize
+
+	//节点默认值
+	root.Index = 0
+	root.Parent = -1
+	return tree
+}
+
+//SetTreeSize
+func (tree *GTree) SetTreeSize(treeSize int32){
+	if tree.N > 0 || tree.GNodes != nil {
+		panic("设置树大小必须在插入节点之前！")
+	}
+	tree.TreeSize = treeSize
+}
+
+//ClearTree
+func (tree *GTree) ClearTree(){
+	tree.N = 0
+	tree.R = -1
+	tree.GNodes = nil
+}
+
+//TreeEmpty
+func (tree *GTree) TreeEmpty() bool {
+	if tree.GNodes == nil && tree.N == 0 {
+		return true
+	}else {
+		return false
+	}
+}
+
+//Root
+func (tree *GTree) Root() *GNode {
+	if tree.TreeEmpty() {
+		return nil
+	}else{
+		return tree.GNodes[0]
+	}
+}
+
+//Value
+func (tree *GTree) Value(cur *GNode) interface{}{
+	if cur == nil {
+		return nil
+	}else{
+		return cur.Data
+	}
+}
+
+//Assign
+func (tree *GTree) Assign(cur *GNode,value interface{}){
+	if cur != nil{
+		cur.Data = value
+	}
+}
+
+//Parent
+func (tree *GTree) Parent(cur *GNode) *GNode{
+	if cur == nil {
+		return nil
+	}
+	return cur.getParent(tree)
+}
+
+//InsertChild
+func (tree *GTree) InsertChild(node *GNode,cur *GNode){
+	//树默认大小
+	if tree.N >= tree.TreeSize{
+		panic("树的节点已经到最大值不能进行插入！")
+	}
+	if tree.GNodes == nil && tree.N == 0 {
+		tree.GNodes = make([]*GNode,tree.TreeSize)
+		tree.GNodes[0] = cur
+		tree.R = 0
+		tree.N = 1
+
+		//节点默认值
+		cur.Index = 0
+		cur.Parent = -1
+		return
+	}
+	if node != nil {
+		node.insert(tree,cur)
+	}
+}
+
+//DeleteChild
+func (tree *GTree) DeleteChild(cur *GNode){
+
+}
+
+//ChildList
+func (tree *GTree) ChildList(node *GNode) []*GNode {
+	if node == nil {
+		return nil
+	}
+	return node.getChild(tree)
+}
+
+//Length
+func (tree *GTree) Length() int32{
+	return tree.N
+}
 
 
 
@@ -117,9 +232,13 @@ func (node *GNode) GetChild() []*GNode {
 
 func main()  {
 
+
+	tree := DefaultCreatTree()
+	tree.SetTreeSize(60)
+
 	root := new(GNode)
 	root.Data = "北京"
-	Tree = CreateTree(root)
+	tree.InsertChild(nil,root)
 
 
 	area1 := new(GNode)
@@ -128,8 +247,8 @@ func main()  {
 	area2 := new(GNode)
 	area2.Data = "区域2"
 
-	root.Add(area1)
-	root.Add(area2)
+	tree.InsertChild(root,area1)
+	tree.InsertChild(root,area2)
 
 
 	partnerId1 := new(GNode)
@@ -138,23 +257,23 @@ func main()  {
 	partnerId2 := new(GNode)
 	partnerId2.Data = "合伙人2"
 
-	area1.Add(partnerId1)
-	area1.Add(partnerId2)
+	tree.InsertChild(area1,partnerId1)
+	tree.InsertChild(area1,partnerId2)
 
 
 	var i int32
-	for i = 0;i<Tree.N ;i++ {
-		node := Tree.GNodes[i]
+	for i = 0;i<tree.N ;i++ {
+		node := tree.GNodes[i]
 		var pData = "nil"
-		if node.GetParent() != nil {
-			pData = fmt.Sprint(node.GetParent().Data)
+		if tree.Parent(node) != nil {
+			pData = fmt.Sprint(tree.Parent(node).Data)
 		}
 
 		var childString = ""
-		childs := node.GetChild()
+		childs := tree.ChildList(node)
 		if childs!= nil {
 			for _,item := range childs {
-				childString += fmt.Sprint(item.Data)
+				childString += fmt.Sprint(tree.Value(item))
 				childString += ","
 			}
 		}
@@ -166,23 +285,10 @@ func main()  {
 
 	}
 
-	fmt.Println(Tree.N)
+	fmt.Println(tree.N)
 
 }
 
-//创建几点
-func CreateTree(root *GNode) *GTree{
-	Tree = new(GTree)
-	Tree.GNodes = make([]*GNode,TreeSize)
-	Tree.GNodes[0] = root
-	Tree.R = 0
-	Tree.N = 1
-
-	//节点默认值
-	root.Index = 0
-	root.Parent = -1
-	return Tree
-}
 
 func Testqq()  {
 
