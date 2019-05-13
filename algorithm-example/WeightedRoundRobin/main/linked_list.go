@@ -9,8 +9,6 @@ package main
 //Node
 type Node struct {
 	Name string
-
-
 	//链表
 	Last *Node
 	Next *Node

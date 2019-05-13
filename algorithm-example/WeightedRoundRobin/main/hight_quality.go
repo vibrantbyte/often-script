@@ -115,19 +115,6 @@ func GetPeer(data *RoundRobinPeerData) *RoundRobinPeer{
 			continue
 		}
 
-		// 当前后端服务器的 down 标志位为 false,接着检查当前后端服务器连接失败的次数是否已经达到 max_fails；
-		// 且睡眠的时间还没到 fail_timeout，则当前后端服务器不被选择，continue 检查下一个后端服务器；
-		//if peer.MaxFails > 0 && peer.Fails >= peer.MaxFails && now - peer.Checked <= peer.FailTimeout {
-		//	continue
-		//}
-
-		// 若当前后端服务器可能被选中，则计算其权重
-
-		/*
-		 * 在上面初始化过程中 current_weight = 0，effective_weight = weight；
-		 * 此时，设置当前后端服务器的权重 current_weight 的值为原始值加上 effective_weight；
-		 * 设置总的权重为原始值加上 effective_weight；
-		 */
 		peer.CurrentWeight += peer.EffectiveWeight
 		total += peer.EffectiveWeight
 
@@ -156,10 +143,25 @@ func GetPeer(data *RoundRobinPeerData) *RoundRobinPeer{
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 // 获取当前毫秒数
 func GetMillisecond() int64 {
 	return time.Now().UnixNano() / 1e6
 }
+
+
+
 
 
 /**

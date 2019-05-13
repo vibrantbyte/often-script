@@ -231,8 +231,6 @@ func (tree *GTree) Length() int32{
 
 
 func main()  {
-
-
 	tree := DefaultCreatTree()
 	tree.SetTreeSize(60)
 
