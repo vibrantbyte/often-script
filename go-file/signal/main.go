@@ -15,6 +15,12 @@ func init() {
 
 // main 优雅退出go守护进程
 func main() {
+
+	fmt.Println(os.Getpid())
+	fmt.Println(os.Getppid())
+	fmt.Println(os.Getwd())
+
+
 	//创建监听退出chan
 	c := make(chan os.Signal)
 	//监听指定信号 ctrl+c kill
