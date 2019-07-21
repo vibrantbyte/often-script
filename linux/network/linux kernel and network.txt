@@ -2,3 +2,6 @@
     主要是需要kernel的网络相关本地接口；
 2、tcpdump 官网网址：http://www.tcpdump.org/
     tcpdump是开源的网络抓包工具，并且提供了扩展接口，方便开发自己的扩展；
+
+//linux内核的开源列表
+https://git.kernel.org/
